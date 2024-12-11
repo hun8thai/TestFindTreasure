@@ -1,0 +1,46 @@
+﻿#root {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    width: 100%;
+}
+
+th, td {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.row {
+    width: 100%;
+    display: inline-block;
+}
+
+.row-left-align {
+    text-align: left;
+}
+.input-row {
+    border-bottom: 1px solid gray;
+    padding-bottom: 5px;
+    text-align: left;
+}
+.output-row {
+    border-top: 1px solid gray;
+    padding-top: 5px;
+}
+
+.input-row {
+    border-bottom: 1px solid gray;
+    padding-bottom: 5px;
+}
+
+.main-lable {
+    font-weight: bolder!important;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    margin-left: 20px;
+}
+
+.update-matrix-button {
+    margin-top: 12px !important;
+}

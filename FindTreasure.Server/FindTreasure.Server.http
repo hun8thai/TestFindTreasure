@@ -1,0 +1,6 @@
+@FindTreasure.Server_HostAddress = http://localhost:5198
+
+GET {{FindTreasure.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
