@@ -19,6 +19,15 @@ th, td {
 .row-left-align {
     text-align: left;
 }
+.app-alert {
+    margin-left: auto;
+    margin-right: auto;
+}
+.app-alert-hidden {
+    margin-left: auto;
+    margin-right: auto;
+    display: none !important;
+}
 .input-row {
     border-bottom: 1px solid gray;
     padding-bottom: 5px;

@@ -4,8 +4,8 @@ import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TreasureModal from './modals/TreasureModal';
-import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
-
+import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 function App() {
 
     const [result, setResult] = React.useState(0)
@@ -19,7 +19,18 @@ function App() {
     const [history, setHistory] = React.useState<Array<TreasureModal>>(new Array())
     const [validationMatrix_messages, setValidationMatrix_messages] = React.useState('')
     const [snackbarOpen, setSnackbarOpen] = React.useState(false)
-    
+    const [snackbarMessage, setSnackbarMessage] = React.useState({ message: '', type: 'success' })
+
+    const openSnackbar = (message: string, type: string) => {
+        setSnackbarMessage({ message: message, type: type == '' ? 'success' : type, })
+        setSnackbarOpen(true);
+    };
+
+    const closeSnackbar = (event?: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+        if (reason === "clickaway") return;
+        setSnackbarOpen(false);
+    };
+
     React.useEffect(() => { getAll(); }, []);
     function initializeMatrix(): Array<Array<number>> {
         //return initializeMatrix1()
@@ -29,7 +40,7 @@ function App() {
         for (var count = 0; count < (intRow); count++) {
             let rowInst: number[] = new Array<number>();
             for (var subCount = 0; subCount < (intColumn); subCount++) {
-                rowInst.push(0)
+                rowInst.push(1)
             }
             tmpMaxtrix[count] = rowInst
         }
@@ -49,99 +60,118 @@ function App() {
     }
 
     return (
-        <Box
-            component="form"
-            noValidate
-            autoComplete="off"
-        >
-            <h1 id="tableLabel">Find Treasure</h1>
-            <Button 
-                id="outlined-message-error"
-                value={validationMatrix_messages}
-                size="small" color="error"
-                hidden={validationMatrix_messages == ''}
+        <div>
+            <Box
+                component="form"
+                noValidate
+                autoComplete="off"
             >
-                {validationMatrix_messages}
-            </Button>
-            <div className="row input-row">
-                <div className="row">
-                    <span  className="main-lable" >
-                        Inputs:
-                    </span>
+                <h1 id="tableLabel">Find Treasure</h1>
+                <div className="row" hidden>
+                    <Alert
+                        className={validationMatrix_messages == '' ? "app-alert-hidden" : "app-alert" }
+                        severity="error"
+                        variant="outlined"
+                        sx={{ width: '80%' }}
+                    >
+                    {validationMatrix_messages ? validationMatrix_messages : undefined}
+                    </Alert>
+                </div>
+                <div className="row input-row">
+                    <div className="row">
+                        <span  className="main-lable" >
+                            Inputs:
+                        </span>
+                    </div>
+                    <Box
+                        component="section"
+                        sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
+                    >
+                        <TextField
+                            required
+                            id="inpRow"
+                            name="inpRow"
+                            label="Rows (n)"
+                            defaultValue={row} onBlur={(event) => { if (validateRow(event.target.value)) setRow(event.target.value) }}
+                            size="small"
+                            error={validationRow_message != ''}
+                            type="number"
+                            helperText={validationRow_message}
+                        />
+                        <TextField
+                            required
+                            id="inpColunm"
+                            name="inpColunm"
+                            label="Colunms (m)"
+                            defaultValue={column} onBlur={(event) => { if (validateCol(event.target.value)) setColumn(event.target.value) }}
+                            size="small"
+                            error={validationColumn_message != ''}
+                            helperText={validationColumn_message}
+                        />
+                        <TextField
+                            required
+                            id="inpTarget"
+                            name="inpTarget"
+                            label="Target (p)"
+                            defaultValue={target} onBlur={(event) => { if (validateTarget(event.target.value)) setTarget(event.target.value) }}
+                            size="small"
+                            error={validationTarget_message != ''}
+                            helperText={validationTarget_message}
+                        />
+                        <Button variant="contained" color="secondary" size="small" className="update-matrix-button" onClick={() => { layoutMatrix() }}>
+                            Update matrix
+                        </Button>
+                    </Box>
                 </div>
                 <Box
                     component="section"
-                    sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
+                    sx={{ '& .MuiTextField-root': { m: 1, width: '12ch' } }}
                 >
-                    <TextField
-                        required
-                        id="inpRow"
-                        name="inpRow"
-                        label="Rows (n)"
-                        defaultValue={row} onBlur={(event) => { if (validateRow(event.target.value)) setRow(event.target.value) }}
-                        size="small"
-                        error={validationRow_message != ''}
-                        type="number"
-                        helperText={validationRow_message}
-                    />
-                    <TextField
-                        required
-                        id="inpColunm"
-                        name="inpColunm"
-                        label="Colunms (m)"
-                        defaultValue={column} onBlur={(event) => { if (validateCol(event.target.value)) setColumn(event.target.value) }}
-                        size="small"
-                        error={validationColumn_message != ''}
-                        helperText={validationColumn_message}
-                    />
-                    <TextField
-                        required
-                        id="inpTarget"
-                        name="inpTarget"
-                        label="Target (p)"
-                        defaultValue={target} onBlur={(event) => { if (validateTarget(event.target.value)) setTarget(event.target.value) }}
-                        size="small"
-                        error={validationTarget_message != ''}
-                        helperText={validationTarget_message}
-                    />
-                    <Button variant="contained" color="secondary" size="small" className="update-matrix-button" onClick={() => { layoutMatrix() }}>
-                        Update matrix
-                    </Button>
+                    {matrix.map((row, rowIndex) =>
+                        <div className="row">
+                            {row.map((item, columnIndex) =>
+                                <TextField
+                                    required
+                                    id={'inpMaxtri_' + rowIndex + '_' + columnIndex}
+                                    name={'inpMaxtri_' + rowIndex + '_' + columnIndex}
+                                    label={'Row ' + (rowIndex +1) + ' - Col ' + (columnIndex + 1)}
+                                    defaultValue={item} onBlur={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
+                                    size="small"
+                                />
+                            )}
+                        </div>
+                    )}
                 </Box>
-            </div>
-            <Box
-                component="section"
-                sx={{ '& .MuiTextField-root': { m: 1, width: '12ch' } }}
-            >
-                {matrix.map((row, rowIndex) =>
-                    <div className="row">
-                        {row.map((item, columnIndex) =>
-                            <TextField
-                                required
-                                id={'inpMaxtri_' + rowIndex + '_' + columnIndex}
-                                name={'inpMaxtri_' + rowIndex + '_' + columnIndex}
-                                label={'Row ' + (rowIndex +1) + ' - Col ' + (columnIndex + 1)}
-                                defaultValue={item} onBlur={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
-                                size="small"
-                            />
-                        )}
-                    </div>
-                )}
+                <div className="row output-row">
+                    <Button variant="contained" color="success" size="small" onClick={() => { findTreasure() }}>
+                        Find
+                    </Button> &nbsp;&nbsp;
+                    <Button variant="contained" color="secondary" size="small" onClick={() => { resetData() }}>
+                        Reset
+                    </Button>
+                </div>
+                <div className="row row-left-align">
+                    <span className="main-lable" > Output: </span>
+                    {result}
+                </div>
             </Box>
-            <div className="row output-row">
-                <Button variant="contained" color="success" size="small" onClick={() => { findTreasure() }}>
-                    Find
-                </Button> &nbsp;&nbsp;
-                <Button variant="contained" color="secondary" size="small" onClick={() => { resetData() }}>
-                    Reset
-                </Button>
-            </div>
-            <div className="row row-left-align">
-                <span className="main-lable" > Output: </span>
-                {result}
-            </div>
-        </Box>
-        
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'right',} }
+                open={snackbarOpen} onClose={closeSnackbar}
+                autoHideDuration={6000} 
+            >
+                <Alert
+                    onClose={closeSnackbar}
+                    severity={snackbarMessage ? snackbarMessage.type : "success"}
+                    variant="outlined"
+                    sx={{ width: '100%' }}
+                    size="small"
+                    hidden
+                >
+                    {snackbarMessage ? snackbarMessage.message : undefined}
+                </Alert>
+            </Snackbar>
+        </div>
     );
 
     async function getAll() {
@@ -182,7 +212,7 @@ function App() {
         result = result && validateCol(column)
         result = result && validateTarget(target)
         result = result && validateMatrix()
-        if (!result) alert('data input is invalid')
+        if (!result) openSnackbar('Data input is invalid', 'error')
         return result
     }
 
@@ -253,16 +283,16 @@ function App() {
                 let value = matrix[count][subCount] + ''
                 let subResult = true
                 if (value == null || value == '') {
-                    message += 'Item (' + count + '-' + subCount +') is required' + '\n'
+                    message += 'Item (' + count + '-' + subCount + ') is required' + '. '
                     subResult = subResult && false
                 }
                 if (isNaN(Number(value))) {
-                    message += 'Item (' + count + '-' + subCount + ') must integer' + '\n'
+                    message += 'Item (' + count + '-' + subCount + ') must integer' + '. '
                     subResult = subResult && false
                 }
                 let intValue = parseInt(value)
                 if (intValue < 1 || intValue > (intColumn) * (intRow)) {
-                    message += 'Item (' + count + '-' + subCount + ') must "1 <= p <= m*n"' + '\n'
+                    message += 'Item (' + count + '-' + subCount + ') must "1 <= p <= m*n"' + '. '
                     subResult = subResult && false
                 }
                 result = subResult && result
@@ -275,7 +305,7 @@ function App() {
     /*
     function findTreasure1() {
         if (!validateData()) return
-        alert('Start find')
+        openSnackbar('Start find', 'info') 
         let currentStepX = 0
         let distance = 0
         let x1 = 1
@@ -310,7 +340,7 @@ function App() {
             }
         }
         if (distance == 0) {
-            alert("You can not found Treasure")
+            openSnackbar("You can not found Treasure", 'error') 
             return { nextStepX: treasureUI.target, x2, y2, distance, setPoints }
         }
         return { nextStepX, x2, y2, distance, setPoints }
@@ -327,6 +357,10 @@ function App() {
         let intTarget = parseInt(target)
         while (currentStepX < (intTarget)) {
             let stepValue = findStepX(currentStepX + 1, x1, y1)
+            if (stepValue.nextStepX == intTarget && stepValue.minDistance == 0) {
+                console.log('can not found treasure ')
+                return
+            }
             distance = distance + stepValue.minDistance
             console.log('Step ' + (++stepCount) + ': x1 - ' + x1 + ', y1 - ' + y1 + ', x2 - ' + stepValue.x2 + ', y2 - ' + stepValue.y2 + ', minDistance - ' + stepValue.minDistance)
             currentStepX = stepValue.nextStepX
@@ -365,7 +399,7 @@ function App() {
             }
         }
         if (minDistance == 0) {
-            alert("You can not found Treasure")
+            openSnackbar("You can not found Treasure", 'error') 
             return { nextStepX: inttarget, x2, y2, minDistance }
         }
         return { nextStepX, x2, y2, minDistance }
@@ -380,7 +414,7 @@ function App() {
         setTimeout(() => {
             setMatrix(initializeMatrix())
             console.log('resetData', matrix)
-            alert('Reseted')
+            openSnackbar("Reseted", '') 
         }, 500)
         
     }
@@ -403,32 +437,33 @@ function App() {
         
     }
 
-    function matrixUpdateItem(row: number, col: number, value: string) {
+    function matrixUpdateItem(iRow: number, iCol: number, value: string) {
         let result = true
-        let intRow = row
-        let intColumn = col
+        let intRow = iRow
+        let intColumn = iCol
         let message = ''
         if (value == null || value == '') {
-            message += 'Item (' + row + '-' + col + ') is required'
+            message += 'Item (' + intRow + '-' + intColumn + ') is required'
             result = result && false
         }
         if (isNaN(Number(value))) {
-            message += 'Item (' + row + '-' + col + ') must integer'
+            message += 'Item (' + intRow + '-' + intColumn + ') must integer'
             result = result && false
         }
         let intValue = parseInt(value)
-        if (intValue < 1 || intValue > (intColumn) * (intRow)) {
-            message += 'Item (' + row + '-' + col + ') must "1 <= p <= m*n"'
+        if (intValue < 1 || intValue > parseInt(row) * parseInt(column)) {
+            message += 'Item (' + intRow + '-' + intColumn + ') must "1 <= p <= m*n"'
             result = result && false
         }
         if (!result) {
             setValidationMatrix_messages(message)
             console.log('matrixUpdateItem' + message)
-            return 
         }
-        console.log('Item (' + row + '-' + col + ') updated value: ' + intValue)
-        matrix[row][col] = intValue
-        setMatrix(matrix)
+        else {
+            matrix[intRow][intColumn] = intValue
+            setMatrix(matrix)
+        }
+        console.log('Item (' + row + '-' + intColumn + ') updated value: ' + intValue)
     }
 }
 
