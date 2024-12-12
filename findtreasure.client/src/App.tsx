@@ -15,7 +15,7 @@ function App() {
     const [validationColumn_message, setValidationColumn_message] = React.useState('')
     const [target, setTarget] = React.useState('3')
     const [validationTarget_message, setValidationTarget_message] = React.useState('')
-    const [matrix, setMatrix] = React.useState<Array<Array<number>>>(initializeMatrix1())
+    const [matrix, setMatrix] = React.useState<Array<Array<number>>>(initializeMatrix())
     const [history, setHistory] = React.useState<Array<TreasureModal>>(new Array())
     const [validationMatrix_messages, setValidationMatrix_messages] = React.useState('')
     const [snackbarOpen, setSnackbarOpen] = React.useState(false)
@@ -47,17 +47,7 @@ function App() {
         return tmpMaxtrix
     }
 
-    function initializeMatrix1(): Array<Array<number>> {
-        //setRow('3')
-        //setColumn('3')
-        //setTarget('3')
-        let tmpMaxtrix = new Array(
-            new Array(3, 2, 2),
-            new Array(2, 2, 2),
-            new Array(2, 2, 1),
-        )
-        return tmpMaxtrix;
-    }
+    
 
     return (
         <div>
@@ -67,7 +57,7 @@ function App() {
                 autoComplete="off"
             >
                 <h1 id="tableLabel">Find Treasure</h1>
-                <div className="row" hidden>
+                <div className="row">
                     <Alert
                         className={validationMatrix_messages == '' ? "app-alert-hidden" : "app-alert" }
                         severity="error"
@@ -76,6 +66,32 @@ function App() {
                     >
                     {validationMatrix_messages ? validationMatrix_messages : undefined}
                     </Alert>
+                </div>
+                <div className="row">
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        className="update-matrix-button"
+                        onClick={() => { testCase1() }}>
+                        Test case 1
+                    </Button>&nbsp;&nbsp;
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        className="update-matrix-button"
+                        onClick={() => { testCase2() }}>
+                        Test case 2
+                    </Button>&nbsp;&nbsp;
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        className="update-matrix-button"
+                        onClick={() => { testCase3() }}>
+                        Test case 3
+                    </Button>
                 </div>
                 <div className="row input-row">
                     <div className="row">
@@ -92,7 +108,7 @@ function App() {
                             id="inpRow"
                             name="inpRow"
                             label="Rows (n)"
-                            defaultValue={row} onBlur={(event) => { if (validateRow(event.target.value)) setRow(event.target.value) }}
+                            value={row} onBlur={(event) => { if (validateRow(event.target.value)) setRow(event.target.value) }}
                             size="small"
                             error={validationRow_message != ''}
                             type="number"
@@ -103,7 +119,7 @@ function App() {
                             id="inpColunm"
                             name="inpColunm"
                             label="Colunms (m)"
-                            defaultValue={column} onBlur={(event) => { if (validateCol(event.target.value)) setColumn(event.target.value) }}
+                            value={column} onBlur={(event) => { if (validateCol(event.target.value)) setColumn(event.target.value) }}
                             size="small"
                             error={validationColumn_message != ''}
                             helperText={validationColumn_message}
@@ -113,7 +129,7 @@ function App() {
                             id="inpTarget"
                             name="inpTarget"
                             label="Target (p)"
-                            defaultValue={target} onBlur={(event) => { if (validateTarget(event.target.value)) setTarget(event.target.value) }}
+                            value={target} onBlur={(event) => { if (validateTarget(event.target.value)) setTarget(event.target.value) }}
                             size="small"
                             error={validationTarget_message != ''}
                             helperText={validationTarget_message}
@@ -135,7 +151,7 @@ function App() {
                                     id={'inpMaxtri_' + rowIndex + '_' + columnIndex}
                                     name={'inpMaxtri_' + rowIndex + '_' + columnIndex}
                                     label={'Row ' + (rowIndex +1) + ' - Col ' + (columnIndex + 1)}
-                                    defaultValue={item} onBlur={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
+                                    value={item} onBlur={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
                                     size="small"
                                 />
                             )}
@@ -370,6 +386,8 @@ function App() {
 
         setResult(distance)
         console.log('result ' + distance)
+        openSnackbar("Found the treasure", '')
+
         insert2Server()
     }
 
@@ -411,6 +429,7 @@ function App() {
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
+        setResult(0)
         setTimeout(() => {
             setMatrix(initializeMatrix())
             console.log('resetData', matrix)
@@ -430,6 +449,8 @@ function App() {
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
+        setResult(0)
+
         setTimeout(() => {
             setMatrix(initializeMatrix())
             console.log('layoutMatrix', matrix)
@@ -464,6 +485,79 @@ function App() {
             setMatrix(matrix)
         }
         console.log('Item (' + row + '-' + intColumn + ') updated value: ' + intValue)
+    }
+
+    function testCase1() {
+        setRow('3')
+        setColumn('3')
+        setTarget('3')
+        setValidationRow_message('')
+        setValidationColumn_message('')
+        setValidationTarget_message('')
+        setValidationMatrix_messages('')
+        setResult(0)
+        setMatrix(new Array(new Array()))
+        let tmpMaxtrix = new Array(
+            new Array(3, 2, 2),
+            new Array(2, 2, 2),
+            new Array(2, 2, 1),
+        )
+
+        setTimeout(() => {
+            setMatrix(tmpMaxtrix)
+            console.log('testCase1', matrix)
+            openSnackbar("testCase1", '')
+
+        }, 500)
+    }
+
+    function testCase2() {
+        setRow('3')
+        setColumn('4')
+        setTarget('3')
+        setValidationRow_message('')
+        setValidationColumn_message('')
+        setValidationTarget_message('')
+        setValidationMatrix_messages('')
+        setResult(0)
+        setMatrix(new Array(new Array()))
+
+        setTimeout(() => {
+            let tmpMaxtrix = new Array(
+                new Array(2, 1, 1, 1),
+                new Array(1, 1, 1, 1),
+                new Array(2, 1, 1, 3),
+            )
+            setMatrix(tmpMaxtrix)
+            console.log('testCase2', matrix)
+            openSnackbar("testCase2", '')
+
+        }, 500)
+    }
+
+    function testCase3() {
+        setRow('3')
+        setColumn('4')
+        setTarget('12')
+        setValidationRow_message('')
+        setValidationColumn_message('')
+        setValidationTarget_message('')
+        setValidationMatrix_messages('')
+        setResult(0)
+        setMatrix(new Array(new Array()))
+
+        setTimeout(() => {
+            let tmpMaxtrix = new Array(
+                new Array(1, 2, 3, 4),
+                new Array(8, 7, 6, 5),
+                new Array(9, 10, 11, 12), 
+
+            )
+            setMatrix(tmpMaxtrix)
+            console.log('testCase3', matrix)
+            openSnackbar("testCase3", '')
+
+        }, 500)
     }
 }
 
