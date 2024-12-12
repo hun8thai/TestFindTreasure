@@ -4,7 +4,7 @@ class TreasureModal {
     column: string = ''
     target: string = ''
     matrixString: string = ''
-    result: string = ''
+    result: number = 0
 
     setMatrixString(data: Array<Array<number>>) {
         let msg = ''

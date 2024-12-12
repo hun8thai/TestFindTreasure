@@ -4,6 +4,7 @@ import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TreasureModal from './modals/TreasureModal';
+import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
 
 function App() {
 
@@ -14,13 +15,12 @@ function App() {
     const [validationColumn_message, setValidationColumn_message] = React.useState('')
     const [target, setTarget] = React.useState('3')
     const [validationTarget_message, setValidationTarget_message] = React.useState('')
-    const [matrix, setMatrix] = React.useState(initializeMatrix1())
+    const [matrix, setMatrix] = React.useState<Array<Array<number>>>(initializeMatrix1())
     const [history, setHistory] = React.useState<Array<TreasureModal>>(new Array())
     const [validationMatrix_messages, setValidationMatrix_messages] = React.useState('')
-
-    React.useEffect(() => {
-        getAll();
-    }, []);
+    const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+    
+    React.useEffect(() => { getAll(); }, []);
     function initializeMatrix(): Array<Array<number>> {
         //return initializeMatrix1()
         let intRow = parseInt(row)
@@ -159,7 +159,7 @@ function App() {
         dataTemp.row = row
         dataTemp.column = column
         dataTemp.target = target
-        dataTemp.result = result + ''
+        dataTemp.result = result
         dataTemp.setMatrixString(matrix)
 
         const response = await fetch('weatherforecast', {
@@ -253,16 +253,16 @@ function App() {
                 let value = matrix[count][subCount] + ''
                 let subResult = true
                 if (value == null || value == '') {
-                    message += 'Item (' + count + '-' + subCount +') is required'
+                    message += 'Item (' + count + '-' + subCount +') is required' + '\n'
                     subResult = subResult && false
                 }
                 if (isNaN(Number(value))) {
-                    message += 'Item (' + count + '-' + subCount +') must integer'
+                    message += 'Item (' + count + '-' + subCount + ') must integer' + '\n'
                     subResult = subResult && false
                 }
                 let intValue = parseInt(value)
                 if (intValue < 1 || intValue > (intColumn) * (intRow)) {
-                    message += 'Item (' + count + '-' + subCount +') must "1 <= p <= m*n"'
+                    message += 'Item (' + count + '-' + subCount + ') must "1 <= p <= m*n"' + '\n'
                     subResult = subResult && false
                 }
                 result = subResult && result
@@ -317,6 +317,7 @@ function App() {
     }
     */
     function findTreasure() {
+        console.log('findTreasure ', matrix)
         if (!validateData()) return
         let currentStepX = 0
         let distance = 0
@@ -334,7 +335,6 @@ function App() {
         }
 
         setResult(distance)
-        alert('Found')
         console.log('result ' + distance)
         insert2Server()
     }
@@ -372,8 +372,17 @@ function App() {
     }
 
     function resetData() {
-        setMatrix(initializeMatrix())
-        alert('Reseted')
+        setMatrix(new Array(new Array()))
+        setValidationRow_message('')
+        setValidationColumn_message('')
+        setValidationTarget_message('')
+        setValidationMatrix_messages('')
+        setTimeout(() => {
+            setMatrix(initializeMatrix())
+            console.log('resetData', matrix)
+            alert('Reseted')
+        }, 500)
+        
     }
 
     function layoutMatrix() {
@@ -382,8 +391,16 @@ function App() {
         resultValidate = resultValidate && validateCol(column)
         resultValidate = resultValidate && validateTarget(target)
         if (resultValidate == false) return
-        setMatrix(initializeMatrix())
-        alert('Reseted')
+        setMatrix(new Array(new Array()))
+        setValidationRow_message('')
+        setValidationColumn_message('')
+        setValidationTarget_message('')
+        setValidationMatrix_messages('')
+        setTimeout(() => {
+            setMatrix(initializeMatrix())
+            console.log('layoutMatrix', matrix)
+        }, 500)
+        
     }
 
     function matrixUpdateItem(row: number, col: number, value: string) {
