@@ -159,7 +159,7 @@ function App() {
                     )}
                 </Box>
                 <div className="row output-row">
-                    <Button variant="contained" color="success" size="small" onClick={() => { findTreasure() }}>
+                    <Button variant="contained" color="success" size="small" onClick={() => { findTreasure1() }}>
                         Find
                     </Button> &nbsp;&nbsp;
                     <Button variant="contained" color="secondary" size="small" onClick={() => { resetData() }}>
@@ -179,7 +179,7 @@ function App() {
                 <Alert
                     onClose={closeSnackbar}
                     severity={snackbarMessage ? snackbarMessage.type : "success"}
-                    variant="outlined"
+                    variant="filled"
                     sx={{ width: '100%' }}
                     size="small"
                     hidden
@@ -200,12 +200,12 @@ function App() {
         }
     }
 
-    async function insert2Server() {
+    async function insert2Server(minDistance: number) {
         var dataTemp = new TreasureModal()
         dataTemp.row = row
         dataTemp.column = column
         dataTemp.target = target
-        dataTemp.result = result
+        dataTemp.result = minDistance
         dataTemp.setMatrixString(matrix)
 
         const response = await fetch('weatherforecast', {
@@ -318,50 +318,96 @@ function App() {
         return result
     }
 
-    /*
+    
     function findTreasure1() {
-        if (!validateData()) return
-        openSnackbar('Start find', 'info') 
-        let currentStepX = 0
-        let distance = 0
-        let x1 = 1
-        let y1 = 1
-        let stepCount = 0
-        let treeResult = { nextStepX: currentStepX, x1, y1, distance, setPoints: new Array() }
-        while (currentStepX < (treasureUI.target??0)) {
-            let stepValue = findStepX(currentStepX + 1, x1, y1)
-            treeResult
-            distance = distance + stepValue.minDistance
-            console.log('Step ' + (++stepCount) + ': x1 - ' + x1 + ', y1 - ' + y1 + ', x2 - ' + stepValue.x2 + ', y2 - ' + stepValue.y2 + ', minDistance - ' + stepValue.minDistance)
-            currentStepX = stepValue.nextStepX
-            x1 = stepValue.x2
-            y1 = stepValue.y2
-        }
+        try {
+            openSnackbar('findTreasure1 Start validation', 'info')
+            console.log('findTreasure1 Start validation')
+            if (!validateData()) return
+            let intRow = parseInt(row)
+            let intCol = parseInt(column)
+            let intTarget = parseInt(target)
+            console.log('findTreasure1 Start ', intRow, intCol, intTarget, matrix)
+            let currentStepX = 0
+            let distance = 0
+            let x1 = 1
+            let y1 = 1
+            let stepCount = 0
+            let treeResult = { nextStepX: 0, x1, y1, distance, setPoints: new Array() }
+            let rootNode = { stepX: currentStepX, x: x1, y: y1, distance: distance, target: intTarget, subNodes: null }
+            rootNode.subNodes = findAndFillNodes(rootNode.stepX + 1, intTarget, intRow, intCol, rootNode.x, rootNode.y)
+            console.log('findTreasure1 - findAndFindNodes - end', intRow, intCol, intTarget, matrix, rootNode)
 
-        setResult(distance)
-        console.log('result ' + distance)
-    }
+            let arrayDistance = new Array() // {steps: string, distance: number}
+            calculateDistance(rootNode, 'start->', rootNode.distance, arrayDistance)
 
-    function findStepX1(nextStepX: number, x1: number, y1: number) : any {
-        let x2 = 1
-        let y2 = 1
-        let distance = 0
-        let setPoints = new Array()
-        for (var count = 0; count < (treasureUI.row ?? 0); count++) {
-            for (var subCount = 0; subCount < (treasureUI.column ?? 0); subCount++) {
-                if (treasureUI.matrix[count][subCount] != nextStepX) continue
+            console.log('findTreasure1 - calculateDistance - end', rootNode, arrayDistance)
 
-                distance = Math.sqrt(Math.pow(x1 - (count + 1), 2) + Math.pow((y1 - (subCount + 1)), 2))
-                setPoints.push({ nextStepX, x2, y2, distance })
+            let minStep: any = null;
+            for (var countDistance = 0; countDistance < arrayDistance.length; countDistance++) {
+                if (minStep == null) {
+                    minStep = arrayDistance[countDistance]
+                }
+                else if (minStep.distance > arrayDistance[countDistance].distance) minStep = arrayDistance[countDistance]
+            }
+            setResult(minStep.distance)
+            console.log('Found the treasure. Steps: ' + minStep.steps + '. Distance: ' + minStep.distance)
+            openSnackbar('Found the treasure. Steps: ' + minStep.steps + '. Distance: ' + minStep.distance, '')
+            insert2Server(minStep.distance)
+        } catch (e) {
+            if (e instanceof RangeError) {
+                console.log("You can not found Treasure", e) 
+                openSnackbar("You can not found Treasure", 'error')
+            } else {
+                console.log("Have issues, please contact with administrator", e) 
+                openSnackbar("Have issues, please contact with administrator", 'error') 
             }
         }
-        if (distance == 0) {
-            openSnackbar("You can not found Treasure", 'error') 
-            return { nextStepX: treasureUI.target, x2, y2, distance, setPoints }
-        }
-        return { nextStepX, x2, y2, distance, setPoints }
+        
     }
-    */
+
+    // inputs - node: any, logSteps: string, totalDistance: number, arrayDistance: Array<{steps: string, distance: number}>
+    function calculateDistance(node: any, logSteps: string, totalDistance: number, arrayDistance: Array<any>) {
+        if (node.subNodes == null) {
+            logSteps += '->(' + node.x + ',' + node.y + ')'
+            console.log("calculateDistance - null", logSteps, totalDistance + node.distance) 
+            arrayDistance.push({ steps: logSteps, distance: totalDistance + node.distance })
+            return 
+        }
+
+        logSteps += '->(' + node.x + ',' + node.y + ')'
+        for (var countNode = 0; countNode < node.subNodes.length; countNode++) {
+            console.log("calculateDistance - call", node.subNodes[countNode]) 
+            calculateDistance(node.subNodes[countNode], logSteps, totalDistance + node.distance, arrayDistance)
+        }
+    }
+    // inputs - nextStepX: number, inpTarget: number, totalRow: number, totalCol: number, x1: number, y1: number
+    // return - nodes: { stepX: currentStepX, x: x1, y: y1, distance: distance, target: intTarget, subNodes: null }
+    function findAndFillNodes(nextStepX: number, inpTarget: number, totalRow: number, totalCol: number, x1: number, y1: number): any {
+        if (nextStepX > inpTarget) {
+            console.log('findAndFindNodes - return null')
+            return null
+        }
+        console.log('findAndFindNodes start', nextStepX, inpTarget, totalRow, totalCol, x1, y1)
+        let setNextNodes = new Array()
+        let distance = 0
+        for (var countRow = 0; countRow < totalRow; countRow++) {
+            for (var countCol = 0; countCol < (totalCol); countCol++) {
+                if (matrix[countRow][countCol] != nextStepX) continue
+
+                distance = Math.sqrt(Math.pow(x1 - (countRow + 1), 2) + Math.pow((y1 - (countCol + 1)), 2))
+                let node = { stepX: nextStepX, x: countRow + 1, y: countCol + 1, distance: distance, target: inpTarget, subNodes: null }
+                node.subNodes = findAndFillNodes(node.stepX + 1, inpTarget, totalRow, totalCol, node.x, node.y)
+
+                setNextNodes.push(node)
+            }
+        }
+        if (distance == 0) throw new RangeError('findAndFillNodes top at: nextStepX-' + nextStepX + ',Target-' + inpTarget + ',totalRow-' + totalRow + ',totalCol-' + totalCol + ',x1-' + x1 + ',y1-' + y1);
+        console.log('findAndFindNodes end', nextStepX, inpTarget, totalRow, totalCol, x1, y1, setNextNodes)
+        return setNextNodes
+    }
+    
+   /*
     function findTreasure() {
         console.log('findTreasure ', matrix)
         if (!validateData()) return
@@ -388,7 +434,7 @@ function App() {
         console.log('result ' + distance)
         openSnackbar("Found the treasure", '')
 
-        insert2Server()
+        insert2Server(distance)
     }
 
     function findStepX(nextStepX: number, x1: number, y1: number): any {
@@ -422,7 +468,7 @@ function App() {
         }
         return { nextStepX, x2, y2, minDistance }
     }
-
+    */
     function resetData() {
         setMatrix(new Array(new Array()))
         setValidationRow_message('')
