@@ -8,14 +8,15 @@ import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 function App() {
 
-    const [result, setResult] = React.useState(0)
+    const [editInputs, setEditInputs] = React.useState(true)
+    const [result, setResult] = React.useState('')
     const [row, setRow] = React.useState('3')
     const [validationRow_message, setValidationRow_message] = React.useState('')
     const [column, setColumn] = React.useState('3')
     const [validationColumn_message, setValidationColumn_message] = React.useState('')
     const [target, setTarget] = React.useState('3')
     const [validationTarget_message, setValidationTarget_message] = React.useState('')
-    const [matrix, setMatrix] = React.useState<Array<Array<number>>>(initializeMatrix())
+    const [matrix, setMatrix] = React.useState<Array<Array<string>>>(initializeMatrix())
     const [history, setHistory] = React.useState<Array<TreasureModal>>(new Array())
     const [validationMatrix_messages, setValidationMatrix_messages] = React.useState('')
     const [snackbarOpen, setSnackbarOpen] = React.useState(false)
@@ -32,42 +33,30 @@ function App() {
     };
 
     React.useEffect(() => { getAll(); }, []);
-    function initializeMatrix(): Array<Array<number>> {
+    function initializeMatrix(): Array<Array<string>> {
         //return initializeMatrix1()
         let intRow = parseInt(row)
         let intColumn = parseInt(column)
         let tmpMaxtrix = new Array()
         for (var count = 0; count < (intRow); count++) {
-            let rowInst: number[] = new Array<number>();
+            let rowInst = new Array<string>();
             for (var subCount = 0; subCount < (intColumn); subCount++) {
-                rowInst.push(1)
+                rowInst.push('1')
             }
             tmpMaxtrix[count] = rowInst
         }
         return tmpMaxtrix
     }
 
-    
-
     return (
-        <div>
+        <div key="div_app_main">
             <Box
                 component="form"
                 noValidate
                 autoComplete="off"
             >
                 <h1 id="tableLabel">Find Treasure</h1>
-                <div className="row">
-                    <Alert
-                        className={validationMatrix_messages == '' ? "app-alert-hidden" : "app-alert" }
-                        severity="error"
-                        variant="outlined"
-                        sx={{ width: '80%' }}
-                    >
-                    {validationMatrix_messages ? validationMatrix_messages : undefined}
-                    </Alert>
-                </div>
-                <div className="row">
+                <div className="row" key="div_test">
                     <Button
                         variant="outlined"
                         color="secondary"
@@ -93,8 +82,8 @@ function App() {
                         Test case 3
                     </Button>
                 </div>
-                <div className="row input-row">
-                    <div className="row">
+                <div className="row input-row" key="div_inputs">
+                    <div className="row" key="div_inputs-label">
                         <span  className="main-lable" >
                             Inputs:
                         </span>
@@ -106,36 +95,41 @@ function App() {
                         <TextField
                             required
                             id="inpRow"
-                            name="inpRow"
+                            key="inpRow"
                             label="Rows (n)"
-                            value={row} onBlur={(event) => { if (validateRow(event.target.value)) setRow(event.target.value) }}
+                            value={row} onChange={(event) => { setRow(event.target.value); validateRow(event.target.value);  }}
                             size="small"
                             error={validationRow_message != ''}
                             type="number"
                             helperText={validationRow_message}
+                            disabled={!editInputs}
                         />
                         <TextField
                             required
                             id="inpColunm"
-                            name="inpColunm"
+                            key="inpColunm"
                             label="Colunms (m)"
-                            value={column} onBlur={(event) => { if (validateCol(event.target.value)) setColumn(event.target.value) }}
+                            value={column} onChange={(event) => { setColumn(event.target.value); validateCol(event.target.value);  }}
                             size="small"
                             error={validationColumn_message != ''}
+                            type="number"
                             helperText={validationColumn_message}
+                            disabled={!editInputs}
                         />
                         <TextField
                             required
                             id="inpTarget"
-                            name="inpTarget"
+                            key="inpTarget"
                             label="Target (p)"
-                            value={target} onBlur={(event) => { if (validateTarget(event.target.value)) setTarget(event.target.value) }}
+                            value={target} onChange={(event) => { setTarget(event.target.value);  validateTarget(event.target.value); }}
                             size="small"
+                            type="number"
                             error={validationTarget_message != ''}
                             helperText={validationTarget_message}
+                            disabled={!editInputs}
                         />
                         <Button variant="contained" color="secondary" size="small" className="update-matrix-button" onClick={() => { layoutMatrix() }}>
-                            Update matrix
+                            {editInputs ? 'layout matrix' : 'change' }
                         </Button>
                     </Box>
                 </div>
@@ -143,33 +137,49 @@ function App() {
                     component="section"
                     sx={{ '& .MuiTextField-root': { m: 1, width: '12ch' } }}
                 >
+                    <div className="row row-left-align" key="div_inputs_matrix_label">
+                        <span className="main-lable" > Island Matrix : </span>
+                    </div>
+                    <div className="row" key="div_alert">
+                        <Alert
+                            className={validationMatrix_messages == '' ? "app-alert-hidden" : "app-alert"}
+                            severity="error"
+                            variant="outlined"
+                            sx={{ width: '80%' }}
+                        >
+                            {validationMatrix_messages ? validationMatrix_messages : undefined}
+                        </Alert>
+                    </div>
                     {matrix.map((row, rowIndex) =>
-                        <div className="row">
+                        <div className="row" key={"div_matrix_" + rowIndex}>
                             {row.map((item, columnIndex) =>
                                 <TextField
                                     required
                                     id={'inpMaxtri_' + rowIndex + '_' + columnIndex}
-                                    name={'inpMaxtri_' + rowIndex + '_' + columnIndex}
+                                    key={'inpMaxtri_' + rowIndex + '_' + columnIndex}
                                     label={'Row ' + (rowIndex +1) + ' - Col ' + (columnIndex + 1)}
-                                    value={item} onBlur={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
+                                    defaultValue={item} onChange={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
+                                    type="number"
                                     size="small"
+                                    disabled={editInputs}
                                 />
                             )}
                         </div>
                     )}
                 </Box>
-                <div className="row output-row">
-                    <Button variant="contained" color="success" size="small" onClick={() => { findTreasure1() }}>
+                <div className="row" key="div_outputs_result">
+                    <Button variant="contained" color="success" size="small" disabled={editInputs} onClick={() => { findTreasure1() }}>
                         Find
                     </Button> &nbsp;&nbsp;
-                    <Button variant="contained" color="secondary" size="small" onClick={() => { resetData() }}>
+                    <Button variant="contained" color="secondary" size="small" disabled={editInputs} onClick={() => { resetData() }}>
                         Reset
                     </Button>
                 </div>
-                <div className="row row-left-align">
+                <div className="row output-row row-left-align" key="div_outputs">
                     <span className="main-lable" > Output: </span>
                     {result}
                 </div>
+                
             </Box>
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'right',} }
@@ -296,7 +306,7 @@ function App() {
         let message = ''
         for (var count = 0; count < (intRow); count++) {
             for (var subCount = 0; subCount < (intColumn); subCount++) {
-                let value = matrix[count][subCount] + ''
+                let value = (matrix[count][subCount] + '').trim()
                 let subResult = true
                 if (value == null || value == '') {
                     message += 'Item (' + count + '-' + subCount + ') is required' + '. '
@@ -307,8 +317,8 @@ function App() {
                     subResult = subResult && false
                 }
                 let intValue = parseInt(value)
-                if (intValue < 1 || intValue > (intColumn) * (intRow)) {
-                    message += 'Item (' + count + '-' + subCount + ') must "1 <= p <= m*n"' + '. '
+                if (intValue < 1) {
+                    message += 'Item (' + count + '-' + subCount + ') must a positive integer.'
                     subResult = subResult && false
                 }
                 result = subResult && result
@@ -332,14 +342,12 @@ function App() {
             let distance = 0
             let x1 = 1
             let y1 = 1
-            let stepCount = 0
-            let treeResult = { nextStepX: 0, x1, y1, distance, setPoints: new Array() }
             let rootNode = { stepX: currentStepX, x: x1, y: y1, distance: distance, target: intTarget, subNodes: null }
             rootNode.subNodes = findAndFillNodes(rootNode.stepX + 1, intTarget, intRow, intCol, rootNode.x, rootNode.y)
             console.log('findTreasure1 - findAndFindNodes - end', intRow, intCol, intTarget, matrix, rootNode)
 
             let arrayDistance = new Array() // {steps: string, distance: number}
-            calculateDistance(rootNode, 'start->', rootNode.distance, arrayDistance)
+            calculateDistance(rootNode, 'start', rootNode.distance, arrayDistance)
 
             console.log('findTreasure1 - calculateDistance - end', rootNode, arrayDistance)
 
@@ -350,7 +358,7 @@ function App() {
                 }
                 else if (minStep.distance > arrayDistance[countDistance].distance) minStep = arrayDistance[countDistance]
             }
-            setResult(minStep.distance)
+            setResult(minStep.distance + '  (Steps: ' + minStep.steps +')')
             console.log('Found the treasure. Steps: ' + minStep.steps + '. Distance: ' + minStep.distance)
             openSnackbar('Found the treasure. Steps: ' + minStep.steps + '. Distance: ' + minStep.distance, '')
             insert2Server(minStep.distance)
@@ -381,6 +389,7 @@ function App() {
             calculateDistance(node.subNodes[countNode], logSteps, totalDistance + node.distance, arrayDistance)
         }
     }
+
     // inputs - nextStepX: number, inpTarget: number, totalRow: number, totalCol: number, x1: number, y1: number
     // return - nodes: { stepX: currentStepX, x: x1, y: y1, distance: distance, target: intTarget, subNodes: null }
     function findAndFillNodes(nextStepX: number, inpTarget: number, totalRow: number, totalCol: number, x1: number, y1: number): any {
@@ -391,10 +400,12 @@ function App() {
         console.log('findAndFindNodes start', nextStepX, inpTarget, totalRow, totalCol, x1, y1)
         let setNextNodes = new Array()
         let distance = 0
+        let hasChildNode = false
         for (var countRow = 0; countRow < totalRow; countRow++) {
             for (var countCol = 0; countCol < (totalCol); countCol++) {
-                if (matrix[countRow][countCol] != nextStepX) continue
+                if ((matrix[countRow][countCol]).trim() != (nextStepX+'')) continue
 
+                hasChildNode = true
                 distance = Math.sqrt(Math.pow(x1 - (countRow + 1), 2) + Math.pow((y1 - (countCol + 1)), 2))
                 let node = { stepX: nextStepX, x: countRow + 1, y: countCol + 1, distance: distance, target: inpTarget, subNodes: null }
                 node.subNodes = findAndFillNodes(node.stepX + 1, inpTarget, totalRow, totalCol, node.x, node.y)
@@ -402,7 +413,7 @@ function App() {
                 setNextNodes.push(node)
             }
         }
-        if (distance == 0) throw new RangeError('findAndFillNodes top at: nextStepX-' + nextStepX + ',Target-' + inpTarget + ',totalRow-' + totalRow + ',totalCol-' + totalCol + ',x1-' + x1 + ',y1-' + y1);
+        if (!hasChildNode) throw new RangeError('findAndFillNodes top at: nextStepX-' + nextStepX + ',Target-' + inpTarget + ',totalRow-' + totalRow + ',totalCol-' + totalCol + ',x1-' + x1 + ',y1-' + y1);
         console.log('findAndFindNodes end', nextStepX, inpTarget, totalRow, totalCol, x1, y1, setNextNodes)
         return setNextNodes
     }
@@ -475,7 +486,7 @@ function App() {
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
-        setResult(0)
+        setResult('')
         setTimeout(() => {
             setMatrix(initializeMatrix())
             console.log('resetData', matrix)
@@ -485,17 +496,25 @@ function App() {
     }
 
     function layoutMatrix() {
+
+        if (editInputs == false) {
+            setEditInputs(!editInputs)
+            return
+        }
+        
         let resultValidate = true;
         resultValidate = resultValidate && validateRow(row)
         resultValidate = resultValidate && validateCol(column)
         resultValidate = resultValidate && validateTarget(target)
         if (resultValidate == false) return
+
+        setEditInputs(!editInputs)
         setMatrix(new Array(new Array()))
         setValidationRow_message('')
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
-        setResult(0)
+        setResult('')
 
         setTimeout(() => {
             setMatrix(initializeMatrix())
@@ -505,35 +524,34 @@ function App() {
     }
 
     function matrixUpdateItem(iRow: number, iCol: number, value: string) {
-        let result = true
+        //let result = true
         let intRow = iRow
         let intColumn = iCol
-        let message = ''
-        if (value == null || value == '') {
-            message += 'Item (' + intRow + '-' + intColumn + ') is required'
-            result = result && false
-        }
-        if (isNaN(Number(value))) {
-            message += 'Item (' + intRow + '-' + intColumn + ') must integer'
-            result = result && false
-        }
-        let intValue = parseInt(value)
-        if (intValue < 1 || intValue > parseInt(row) * parseInt(column)) {
-            message += 'Item (' + intRow + '-' + intColumn + ') must "1 <= p <= m*n"'
-            result = result && false
-        }
-        if (!result) {
-            setValidationMatrix_messages(message)
-            console.log('matrixUpdateItem' + message)
-        }
-        else {
-            matrix[intRow][intColumn] = intValue
-            setMatrix(matrix)
-        }
-        console.log('Item (' + row + '-' + intColumn + ') updated value: ' + intValue)
+        //let message = ''
+        //if (value == null || value == '') {
+        //    message += 'Item (' + intRow + '-' + intColumn + ') is required'
+        //    result = result && false
+        //}
+        //if (isNaN(Number(value))) {
+        //    message += 'Item (' + intRow + '-' + intColumn + ') must integer'
+        //    result = result && false
+        //}
+        //let intValue = parseInt(value)
+        //if (intValue < 1 || intValue > parseInt(row) * parseInt(column)) {
+        //    message += 'Item (' + intRow + '-' + intColumn + ') must "1 <= p <= m*n"'
+        //    result = result && false
+        //}
+        //if (!result) {
+        //    setValidationMatrix_messages(message)
+        //    console.log('matrixUpdateItem' + message)
+        //}
+        matrix[intRow][intColumn] = value
+        setMatrix(matrix)
+        console.log('Item (' + row + '-' + intColumn + ') updated value: ' + value, matrix)
     }
 
     function testCase1() {
+        setEditInputs(false)
         setRow('3')
         setColumn('3')
         setTarget('3')
@@ -541,23 +559,24 @@ function App() {
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
-        setResult(0)
+        setResult('')
         setMatrix(new Array(new Array()))
         let tmpMaxtrix = new Array(
-            new Array(3, 2, 2),
-            new Array(2, 2, 2),
-            new Array(2, 2, 1),
+            new Array('3', '2', '2'),
+            new Array('2', '2', '2'),
+            new Array('2', '2', '1'),
         )
 
         setTimeout(() => {
             setMatrix(tmpMaxtrix)
-            console.log('testCase1', matrix)
-            openSnackbar("testCase1", '')
+            console.log('Loaded data for "Test Case 1"', matrix)
+            openSnackbar('Loaded data for "Test Case 1"', '')
 
         }, 500)
     }
 
     function testCase2() {
+        setEditInputs(false)
         setRow('3')
         setColumn('4')
         setTarget('3')
@@ -565,23 +584,24 @@ function App() {
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
-        setResult(0)
+        setResult('')
         setMatrix(new Array(new Array()))
 
         setTimeout(() => {
             let tmpMaxtrix = new Array(
-                new Array(2, 1, 1, 1),
-                new Array(1, 1, 1, 1),
-                new Array(2, 1, 1, 3),
+                new Array('2', '1', '1', '1'),
+                new Array('1', '1', '1', '1'),
+                new Array('2', '1', '1', '3'),
             )
             setMatrix(tmpMaxtrix)
-            console.log('testCase2', matrix)
-            openSnackbar("testCase2", '')
+            console.log('Loaded data for "Test Case 2"', matrix)
+            openSnackbar('Loaded data for "Test Case 2"', '')
 
         }, 500)
     }
 
     function testCase3() {
+        setEditInputs(false)
         setRow('3')
         setColumn('4')
         setTarget('12')
@@ -589,19 +609,19 @@ function App() {
         setValidationColumn_message('')
         setValidationTarget_message('')
         setValidationMatrix_messages('')
-        setResult(0)
+        setResult('')
         setMatrix(new Array(new Array()))
 
         setTimeout(() => {
             let tmpMaxtrix = new Array(
-                new Array(1, 2, 3, 4),
-                new Array(8, 7, 6, 5),
-                new Array(9, 10, 11, 12), 
+                new Array('1', '2', '3', '4'),
+                new Array('8', '7', '6', '5'),
+                new Array('9', '10', '11', '12'), 
 
             )
             setMatrix(tmpMaxtrix)
-            console.log('testCase3', matrix)
-            openSnackbar("testCase3", '')
+            console.log('Loaded data for "Test Case 3"', matrix)
+            openSnackbar('Loaded data for "Test Case 3"', '')
 
         }, 500)
     }

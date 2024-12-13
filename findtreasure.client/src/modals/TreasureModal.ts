@@ -6,7 +6,7 @@ class TreasureModal {
     matrixString: string = ''
     result: number = 0
 
-    setMatrixString(data: Array<Array<number>>) {
+    setMatrixString(data: Array<Array<string>>) {
         let msg = ''
         for (var count = 0; count < data.length; count++) {
             for (var subCount = 0; subCount < data[count].length; subCount++) {
@@ -17,7 +17,7 @@ class TreasureModal {
         this.matrixString = msg
     }
 
-    getMatrix(): Array<Array<number>> {
+    getMatrix(): Array<Array<string>> {
         let data = new Array()
         let intRow = parseInt(this.row)
         let intColumn = parseInt(this.column)
@@ -26,7 +26,7 @@ class TreasureModal {
             let row = new Array()
             for (var subCount = 0; subCount < intRow; subCount++) {
 
-                row.push(parseInt(temp[count * intRow + subCount]))
+                row.push(temp[count * intRow + subCount])
             }
             data.push(row)
         }
