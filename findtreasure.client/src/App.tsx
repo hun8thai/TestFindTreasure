@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TreasureModal from './modals/TreasureModal';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import Alert, { AlertColor } from '@mui/material/Alert';
 function App() {
 
     const [editInputs, setEditInputs] = React.useState(true)
@@ -158,7 +158,7 @@ function App() {
                                     id={'inpMaxtri_' + rowIndex + '_' + columnIndex}
                                     key={'inpMaxtri_' + rowIndex + '_' + columnIndex}
                                     label={'Row ' + (rowIndex +1) + ' - Col ' + (columnIndex + 1)}
-                                    defaultValue={item} onChange={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
+                                    value={item} onChange={(event) => { matrixUpdateItem(rowIndex, columnIndex, event.target.value) }}
                                     type="number"
                                     size="small"
                                     disabled={editInputs}
@@ -188,10 +188,9 @@ function App() {
             >
                 <Alert
                     onClose={closeSnackbar}
-                    severity={snackbarMessage ? snackbarMessage.type : "success"}
+                    severity={(snackbarMessage ? snackbarMessage.type : "success") as AlertColor}
                     variant="filled"
                     sx={{ width: '100%' }}
-                    size="small"
                     hidden
                 >
                     {snackbarMessage ? snackbarMessage.message : undefined}
@@ -524,29 +523,28 @@ function App() {
     }
 
     function matrixUpdateItem(iRow: number, iCol: number, value: string) {
-        //let result = true
+        let result = true
         let intRow = iRow
         let intColumn = iCol
-        //let message = ''
-        //if (value == null || value == '') {
-        //    message += 'Item (' + intRow + '-' + intColumn + ') is required'
-        //    result = result && false
-        //}
-        //if (isNaN(Number(value))) {
-        //    message += 'Item (' + intRow + '-' + intColumn + ') must integer'
-        //    result = result && false
-        //}
-        //let intValue = parseInt(value)
-        //if (intValue < 1 || intValue > parseInt(row) * parseInt(column)) {
-        //    message += 'Item (' + intRow + '-' + intColumn + ') must "1 <= p <= m*n"'
-        //    result = result && false
-        //}
-        //if (!result) {
-        //    setValidationMatrix_messages(message)
-        //    console.log('matrixUpdateItem' + message)
-        //}
-        matrix[intRow][intColumn] = value
-        setMatrix(matrix)
+        let message = ''
+        if (value == null || value == '') {
+            message += 'Item (' + intRow + '-' + intColumn + ') is required. '
+            result = result && false
+        }
+        if (isNaN(Number(value))) {
+            message += 'Item (' + intRow + '-' + intColumn + ') must integer. '
+            result = result && false
+        }
+        let intValue = parseInt(value)
+        if (intValue < 1 ) {
+            message += 'Item (' + intRow + '-' + intColumn + ') must a positive integer.'
+            result = result && false
+        }
+        setValidationMatrix_messages(message)
+
+        const newArray = [...matrix];
+        newArray[intRow][intColumn] = value
+        setMatrix(newArray)
         console.log('Item (' + row + '-' + intColumn + ') updated value: ' + value, matrix)
     }
 
